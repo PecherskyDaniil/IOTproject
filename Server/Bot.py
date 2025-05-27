@@ -201,14 +201,18 @@ async def data_return(callback: CallbackQuery):
 
 @dp.callback_query(F.data.startswith("update_device_"))
 async def data_return(callback: CallbackQuery):
-    device_id = callback.data.split("_")[1]
+    device_id = callback.data.split("_")[2]
+    print(device_id)
     db=SessionLocal()
     db_device = crud.get_device_by_id(db,device_id=device_id)
     logger = get_logger("update_data_device")
     logger.info(f"Info of device {db_device.device_name} was returned")
     db.close()
-    db_device.unique_hash
-    client.publish(f"devices/{db_device.unique_hash}", "update")
+    client.connect("broker.emqx.io")
+    client.loop_start()
+    client.publish(f"/pech/esplamp/{db_device.unique_hash}", f"sensors")
+    client.disconnect()
+    client.loop_stop()
     await callback.message.answer(
         f"На девайс {db_device.device_name} был отправлен запрос на обновление данных. Подождите от 1 до 3 минут и проверьте новые показания через команду get_device_from_data"
     )
@@ -317,7 +321,11 @@ async def get_data_from_all_devices(
     db_devices = crud.get_device_by_user(db,user_id=user_id)
     message_text=""
     for device in db_devices:
-        client.publish(f"devices/{device.unique_hash}", "update")
+        client.connect("broker.emqx.io")
+        client.loop_start()
+        client.publish(f"/pech/esplamp/{device.unique_hash}", f"sensors")
+        client.disconnect()
+        client.loop_stop()
         message_text+=f"На девайс {device.device_name} был отправлен запрос на обновление данных.\n"
 
     db.close()
