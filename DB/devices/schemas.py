@@ -1,0 +1,21 @@
+from pydantic import BaseModel
+import datetime
+class DeviceBase(BaseModel):
+    device_name:str
+    unique_hash:str
+    user_id:int
+
+
+class DeviceCreate(DeviceBase):
+    pass
+
+
+class Device(DeviceBase):
+    id: int
+    last_turbidity:float
+    last_waterlevel:float
+    last_changed:datetime.datetime
+    feed_interval:int
+    class Config:
+        from_attributes = True
+        arbitrary_types_allowed=True
