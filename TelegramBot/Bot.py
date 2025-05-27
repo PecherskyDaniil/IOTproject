@@ -194,7 +194,8 @@ async def data_return(callback: CallbackQuery):
     await callback.message.answer(
         f"Девайс {db_device.device_name}\n"
         f"Мутность: {db_device.last_turbidity}\n"
-        f"Уровень воды: {db_device.last_waterlevel}"
+        f"Уровень воды: {db_device.last_waterlevel}\n"
+        f"Последний ответ:  {db_device.last_changed}"
     )
     return
 
@@ -288,7 +289,7 @@ async def get_data_from_all_devices(
     db_devices = crud.get_device_by_user(db,user_id=user_id)
     message_text=""
     for device in db_devices:
-        message_text+=f"Девайс {device.device_name}\n  Мутность: {device.last_turbidity}\n  Уровень воды: {device.last_waterlevel}\n\n"
+        message_text+=f"Девайс {device.device_name}\n  Мутность: {device.last_turbidity}\n  Уровень воды: {device.last_waterlevel}\n Последний ответ:  {device.last_changed}\n\n"
     db.close()
     logger.info(f"Device info was returned for user {db_user.name} ")
     await message.answer(
