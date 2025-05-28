@@ -108,17 +108,54 @@ async def register_device(
         return
     else:
         logger.debug("Hash verifed")
-    db_user=crud.get_users_by_chat_id(db,chat_id=str(message.chat.id))
-    if not(db_user):
+    db_users=crud.get_users_by_chat_id(db,chat_id=str(message.chat.id))
+    print(db_users)
+    if not(db_users):
         db_user=crud.create_user(db,user=usersschemas.UserCreate(chat_id=str(message.chat.id),name=message.from_user.full_name))
-    user_id=db_user.id
+        user_id=db_user.id
+        username=db_user.name
+    else:
+        user_id=db_users.id
+        username=db_users.name
     db_device=crud.create_device(db=db, device=devicesschemas.DeviceCreate(device_name=name,unique_hash=hash,user_id=user_id))
+    device_name=db_device.device_name
+    device_hash=db_device.unique_hash
+    logger.info(f"Device {db_device.device_name} from user {username} was registred")
     db.close()
-    logger.info(f"Device {db_device.device_name} from user {db_user.name} was registred")
     await message.answer(
         "Девайс добавлен!\n"
-        f"Имя: {db_device.device_name}\n"
-        f"Hash: {db_device.unique_hash}"
+        f"Имя: {device_name}\n"
+        f"Hash: {device_hash}"
+    )
+@dp.message(Command('devices'))
+async def get_list_of_devices(
+        message: Message,
+        command: CommandObject
+):
+    # Если не переданы никакие аргументы, то
+    # command.args будет None
+    logger = get_logger("get_list_devices")
+    db=SessionLocal()
+    db_user=crud.get_users_by_chat_id(db,chat_id=str(message.chat.id))
+    if not(db_user):
+        logger.error("This user is not registered")
+        db.close()
+        await message.answer(
+        "Вы не зарегестрировали ни одного устройства с этого аккаунта!"
+        )
+        return
+    user_id=db_user.id
+    db_devices = crud.get_device_by_user(db,user_id=user_id)
+    db.close()
+    d_names=[]
+    d_ids=[]
+    message_text="Ваши устройства:\n"
+    for device in db_devices:
+        message_text+=f"{device.device_name} {device.unique_hash}\n"
+    db.close()
+    logger.info(f"List of devices of user {db_user.name} was returned")
+    await message.answer(
+        message_text
     )
 
 @dp.message(Command('get_data_from_device'))
