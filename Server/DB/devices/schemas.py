@@ -19,3 +19,18 @@ class Device(DeviceBase):
     class Config:
         from_attributes = True
         arbitrary_types_allowed=True
+
+class DeviceDataBase(BaseModel):
+    device_id:int
+    turbidity:float
+    waterlevel:float
+
+class DeviceDataCreate(DeviceDataBase):
+    pass
+
+class DeviceData(DeviceDataCreate):
+    id: int
+    created:datetime.datetime
+    class Config:
+        from_attributes = True
+        arbitrary_types_allowed=True

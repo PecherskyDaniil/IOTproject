@@ -48,15 +48,28 @@ def create_user(db: Session, user: usersschemas.UserCreate):
     return db_user
 
 def insert_device_data(db: Session,device_id:int,turbidity:float,waterlevel:float):
-    db_response=db.query(devicesmodels.Device).filter(devicesmodels.Device.id == device_id).first()
-    db_response.last_turbidity=turbidity
-    db_response.last_waterlevel=waterlevel
+    db_data=devicesmodels.DeviceData(device_id=device_id,turbidity=turbidity,waterlevel=waterlevel)
+    db.add(db_data)
     db.commit()
-    db.refresh(db_response)
-    return db_response
+    db.refresh(db_data)
+    return db_data
+def get_data_by_device_id(db:Session,device_id:int,limit:int=100):
+    return db.query(devicesmodels.DeviceData).filter(devicesmodels.DeviceData.device_id == device_id).order_by(devicesmodels.DeviceData.created).limit(limit).all()
+
+def get_data_by_device_hash(db:Session,hash:str,limit:int=100):
+    return get_data_by_device_id(db,db.query(devicesmodels.Device).filter(devicesmodels.Device.unique_hash==hash).first().id,limit)
+
+def get_last_data_by_device_id(db:Session,device_id:int):
+    return db.query(devicesmodels.DeviceData).filter(devicesmodels.DeviceData.device_id == device_id).order_by(devicesmodels.DeviceData.created).first()
+
+def get_last_data_by_device_hash(db:Session,hash:str):
+    return get_last_data_by_device_id(db,db.query(devicesmodels.Device).filter(devicesmodels.Device.unique_hash==hash).first().id)
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(usersmodels.User).offset(skip).limit(limit).all()
 
 def get_devices(db: Session, skip: int = 0, limit: int = 100):
     return db.query(devicesmodels.Device).offset(skip).limit(limit).all()
+
+def get_data(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(devicesmodels.DeviceData).offset(skip).limit(limit).all()

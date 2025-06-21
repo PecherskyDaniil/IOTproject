@@ -225,14 +225,15 @@ async def data_return(callback: CallbackQuery):
     print(device_id)
     db=SessionLocal()
     db_device = crud.get_device_by_id(db,device_id=device_id)
+    db_device_data = crud.get_data_by_device_id(db,device_id,1)[0]
     logger = get_logger("get_data_device")
     logger.info(f"Info of device {db_device.device_name} was returned")
     db.close()
     await callback.message.answer(
         f"Девайс {db_device.device_name}\n"
-        f"Мутность: {db_device.last_turbidity}\n"
-        f"Уровень воды: {db_device.last_waterlevel}\n"
-        f"Последний ответ:  {db_device.last_changed}"
+        f"Мутность: {db_device_data.turbidity}\n"
+        f"Уровень воды: {db_device_data.waterlevel}\n"
+        f"Последний ответ:  {db_device_data.created}"
     )
     return
 
@@ -330,7 +331,7 @@ async def get_data_from_all_devices(
     db_devices = crud.get_device_by_user(db,user_id=user_id)
     message_text=""
     for device in db_devices:
-        message_text+=f"Девайс {device.device_name}\n  Мутность: {device.last_turbidity}\n  Уровень воды: {device.last_waterlevel}\n Последний ответ:  {device.last_changed}\n\n"
+        message_text+=f"Девайс {device.device_name}\n  Мутность: {device.data[-1].turbidity}\n  Уровень воды: {device.data[-1].waterlevel}\n Последний ответ:  {device.data[-1].created}\n\n"
     db.close()
     logger.info(f"Device info was returned for user {db_user.name} ")
     await message.answer(

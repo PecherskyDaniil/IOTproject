@@ -50,7 +50,7 @@ def test_insert_device_data():
     response = client.post("/devices/data/update",json={"hash":"5263621","turbidity":22.2,"waterlevel":34.1})
     print(response.json())
     assert response.status_code == 200
-    assert response.json()["name"] == "testdevice"
+    assert response.json()["result"] == "updated"
 
 def test_feed_device_data():
     response = client.get("/devices/feed?hash=5263621")
