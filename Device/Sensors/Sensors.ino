@@ -29,23 +29,23 @@ void feed(long time){
 void loop() {
   int watervalue = analogRead(WATER_SENSOR);
   int mutnovalue = analogRead(MUTNO_SENSOR);
+  if (watervalue<100 and !levelislow){
+    espSerial.println("Low water level");
+    levelislow=true;
+  }else if(watervalue>100 and levelislow){
+    levelislow=false;
+  }
+  if (mutnovalue<100 and !turbidityishigh){
+    espSerial.println("High turbidity level");
+    turbidityishigh=true;
+  }if (mutnovalue>100 and turbidityishigh){
+    turbidityishigh=false;
+  }
   if (espSerial.available()) {
     String message = espSerial.readStringUntil('\n'); // Читаем строку до символа новой строки
     Serial.print("Received from ESP: ");
     Serial.println(message);
     Serial.println((int)message.c_str()[1]);
-    if (watervalue<200 and !levelislow){
-      espSerial.println("Low water level");
-      levelislow=true;
-    }else if(watervalue>200 and levelislow){
-      levelislow=false;
-    }
-    if (mutnovalue>800 and !turbidityishigh){
-      espSerial.println("High turbidity level");
-      turbidityishigh=true;
-    }if (mutnovalue<800 and turbidityishigh){
-      turbidityishigh=false;
-    }
     if (strcmp(message.c_str(), sensorsig.c_str())==0) {
       espSerial.print(mutnovalue);
       espSerial.print(" ");
