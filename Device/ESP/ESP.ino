@@ -91,7 +91,7 @@ void loop(void){
       if (WiFi.status() == WL_CONNECTED) { // Проверяем подключение к Wi-Fi
         HTTPClient http;
         WiFiClient wifiClient;
-        String sendUrl = "http://"+serverIP+"/api/devices/data/update";
+        String sendUrl = "http://"+serverIP+"/api/data/update";
         http.begin(wifiClient,sendUrl.c_str()); // Указываем URL
         http.addHeader("Content-Type", "application/json");
         int httpResponseCode = http.POST("{\"hash\":\""+hash+"\",\"turbidity\":"+words[0]+",\"waterlevel\":"+words[1]+"}");
