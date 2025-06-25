@@ -64,7 +64,7 @@ def get_db():
     finally:
         db.close()
 
-@app.post("api/users/create")
+@app.post("/api/users/create")
 async def create_user(request: Request, user: usersschemas.UserCreate, db: Session = Depends(get_db)):
     logger = get_logger("create_user")
     db_user = crud.get_users_by_chat_id(db, chat_id=user.chat_id)
@@ -89,7 +89,7 @@ async def create_device(request: Request, id: int, db: Session = Depends(get_db)
     logger.info('Return user "'+db_user.name+'" by api')
     return {"info":db_user}
 
-@app.post("api/devices/create")
+@app.post("/api/devices/create")
 async def create_device(request: Request, device: devicesschemas.DeviceCreate, db: Session = Depends(get_db)):
     logger = get_logger("create_device")
     db_device = crud.get_device_by_hash(db, hash=device.unique_hash)
@@ -132,7 +132,7 @@ async def get_data_all(request:Request,deviceHash:str,limit:int=100,db: Session 
     db_data=crud.get_data_by_device_hash(db=db,hash=deviceHash)
     return db_data
 
-@app.post("api/data/update")
+@app.post("/api/data/update")
 async def update_data(request: Request, data:dict, db: Session = Depends(get_db)):
     logger = get_logger("update_data")
     logger.info("Sent request to update data from device")
@@ -142,21 +142,21 @@ async def update_data(request: Request, data:dict, db: Session = Depends(get_db)
     return {"result":"updated"}
 
 
-@app.get("api/users/", response_model=list[usersschemas.User])
+@app.get("/api/users/", response_model=list[usersschemas.User])
 async def read_users(request: Request,skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     logger = get_logger("get_user")
     users = crud.get_users(db, skip=skip, limit=limit)
     logger.info("Users returned")
     return users
 
-@app.get("api/devices/", response_model=list[devicesschemas.Device])
+@app.get("/api/devices/", response_model=list[devicesschemas.Device])
 async def read_devices(request: Request,skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     logger = get_logger("get_device")
     devices = crud.get_devices(db, skip=skip, limit=limit)
     logger.info("Devices returned")
     return devices
 
-@app.get("api/devices/feed")
+@app.get("/api/devices/feed")
 async def read_users(request: Request,hash:str, db: Session = Depends(get_db)):
     logger = get_logger("get_device_feed")
     logger.info(f"Sent request to get feed data from device {hash}")
@@ -173,7 +173,7 @@ async def refresh_data(request:Request,hash:str,db: Session = Depends(get_db)):
     client.loop_stop()
     return {"result":"ok"}
 
-@app.post("api/devices/alarm")
+@app.post("/api/devices/alarm")
 async def send_alarm_user(request: Request, db: Session = Depends(get_db)):#, data:dict):
     logger = get_logger("device_send_alarm")
     data=await request.json()

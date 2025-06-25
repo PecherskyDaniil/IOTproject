@@ -102,7 +102,7 @@ const DevicePage = () => {
           <div className="metric-card">
             <h3>Последнее обновление</h3>
             <p className="metric-value">
-              {format(parseISO(deviceData.metrics.created), 'HH:mm')}
+              {format(parseISO(deviceData.metrics.created), 'yyyy-MM-dd HH:mm:ss')}
             </p>
           </div>
         </div>

@@ -47,6 +47,12 @@ def create_user(db: Session, user: usersschemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
+def delete_device(db:Session,device_id:int):
+    db_device=db.query(devicesmodels.Device).get(device_id)
+    db.delete(db_device)
+    db.commit()
+    return db_device
+
 def insert_device_data(db: Session,device_id:int,turbidity:float,waterlevel:float):
     db_data=devicesmodels.DeviceData(device_id=device_id,turbidity=turbidity,waterlevel=waterlevel)
     db.add(db_data)

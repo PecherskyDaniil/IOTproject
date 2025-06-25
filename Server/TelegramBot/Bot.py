@@ -127,6 +127,53 @@ async def register_device(
         f"Имя: {device_name}\n"
         f"Hash: {device_hash}"
     )
+@dp.message(Command('delete'))
+async def delete_device(
+        message: Message,
+        command: CommandObject
+):
+    # Если не переданы никакие аргументы, то
+    # command.args будет None
+    logger = get_logger("delete_device")
+    if command.args is None:
+        logger.error("Command doesn't have parametres")
+        await message.answer(
+            "Ошибка: не переданы аргументы"
+        )
+        return
+    # Пробуем разделить аргументы на две части по первому встречному пробелу
+    try:
+        name= command.args
+    # Если получилось меньше двух частей, вылетит ValueError
+    except ValueError:
+        logger.error("Wrong command format")
+        await message.answer(
+            "Ошибка: неправильный формат команды. Пример:\n"
+            "/register <name>"
+        )
+        return
+    
+    db=SessionLocal()
+    db_user=crud.get_users_by_chat_id(db,chat_id=str(message.chat.id))
+    db_devices = crud.get_device_by_user(db,user_id=db_user.id)
+    result=None
+    for db_device in db_devices:
+        if db_device.device_name==name:
+            result=crud.delete_device(db,db_device.id)
+    if result is None:
+        logger.error("Entered device doesnt exist")
+        db.close()
+        await message.answer(
+        "Устройства с таким именем не найдено"
+        )
+        return
+    else:
+        logger.debug("device deleted")
+    logger.info(f"Device {db_device.device_name} deleted")
+    db.close()
+    await message.answer(
+        f"Девайс {name} удален!"
+    )
 @dp.message(Command('devices'))
 async def get_list_of_devices(
         message: Message,
@@ -214,10 +261,14 @@ async def update_data_on_device(
         d_names.append(device.device_name)
         d_ids.append(device.id)
     db.close()
-    logger.info(f"List of devices of user {db_user.name} was returned")
-    await message.answer(
-        "Выберите девайс",reply_markup=get_keyboard_devices_update(device_names=d_names,device_ids=d_ids)
-    )
+    if len(db_devices)==0:
+        await message.answer(
+        "У вас нет девайсов!")
+    else:
+        logger.info(f"List of devices of user {db_user.name} was returned")
+        await message.answer(
+            "Выберите девайс",reply_markup=get_keyboard_devices_update(device_names=d_names,device_ids=d_ids)
+        )
 
 @dp.callback_query(F.data.startswith("get_device_"))
 async def data_return(callback: CallbackQuery):
@@ -329,14 +380,23 @@ async def get_data_from_all_devices(
         return
     user_id=db_user.id
     db_devices = crud.get_device_by_user(db,user_id=user_id)
+    
     message_text=""
     for device in db_devices:
-        message_text+=f"Девайс {device.device_name}\n  Мутность: {device.data[-1].turbidity}\n  Уровень воды: {device.data[-1].waterlevel}\n Последний ответ:  {device.data[-1].created}\n\n"
+        if len(device.data)>0:
+            message_text+=f"Девайс {device.device_name}\n  Мутность: {device.data[-1].turbidity}\n  Уровень воды: {device.data[-1].waterlevel}\n Последний ответ:  {device.data[-1].created}\n\n"
+        else:
+            message_text+=f"Девайс {device.device_name}\n  нету данных\n"
     db.close()
     logger.info(f"Device info was returned for user {db_user.name} ")
-    await message.answer(
-        message_text
-    )
+    if len(message_text)>0:
+        await message.answer(
+            message_text
+        )
+    else:
+        await message.answer(
+           "У вас не устройств!"
+        )
 
 @dp.message(Command('update_data_on_all_devices'))
 async def get_data_from_all_devices(
@@ -367,10 +427,15 @@ async def get_data_from_all_devices(
         message_text+=f"На девайс {device.device_name} был отправлен запрос на обновление данных.\n"
 
     db.close()
-    logger.info(f"Device info was updated for user {db_user.name} ")
-    await message.answer(
-        message_text
-    )
+    if len(db_devices)==0:
+        await message.answer(
+            "у вас нет девайсов"
+        )
+    else:
+        logger.info(f"Device info was updated for user {db_user.name} ")
+        await message.answer(
+            message_text
+        )
 
 # Запуск процесса поллинга новых апдейтов
 async def start_bot():

@@ -12,8 +12,8 @@ class DeviceCreate(DeviceBase):
 
 class Device(DeviceBase):
     id: int
-    last_turbidity:float
-    last_waterlevel:float
+    #last_turbidity:float
+    #last_waterlevel:float
     last_changed:datetime.datetime
     feed_interval:int
     class Config:
